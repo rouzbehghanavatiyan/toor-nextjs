@@ -14,10 +14,19 @@ import {
   Pin,
   ChevronDown,
   ChevronUp,
+  MapPin,
+  Compass,
+  PhoneCall,
+  Calendar,
+  CloudSun,
+  Backpack,
+  AlertTriangle,
+  Clock,
+  ShieldCheck,
 } from "lucide-react";
 
 import StoryBar from "./StoryBar";
-import StoryViewer from "./StoryViewer";
+import StoryViewer from "./TourReserve";
 import LeaderCards from "./LeaderCards";
 import {
   initialMessages,
@@ -29,6 +38,28 @@ import {
   type Role,
 } from "@/lib/chat";
 import type { Room } from "@/lib/rooms";
+import TourReserve from "./TourReserve";
+
+// مدل گسترش‌یافته اطلاعات تور
+interface TourDetails {
+  destination: string;
+  startDate: string;
+  meetingPoint: string;
+  meetingTime: string;
+  status: "upcoming" | "in-progress" | "completed";
+  weatherTemp: string;
+  leaderPhone: string;
+}
+
+const TOUR_MOCK_DATA: TourDetails = {
+  destination: "کویر مرنجاب و دریاچه نمک",
+  startDate: "۱۵ الی ۱۷ آبان",
+  meetingPoint: "میدان آزادی، روبروی ایران‌فیلم",
+  meetingTime: "۰۵:۰۰ صبح پنجشنبه",
+  status: "in-progress",
+  weatherTemp: "۲۴°C آفتابی",
+  leaderPhone: "09120000000",
+};
 
 const currentUser: { name: string; role: Role } = {
   name: "شما",
@@ -39,12 +70,15 @@ const canModerate =
 
 const MAX_INPUT_HEIGHT = 140;
 
-export default function ChatRoom({ room }: { room: Room }) {
+export default function TourChatRoom({ room }: { room: Room }) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [text, setText] = useState("");
   const [asAnnouncement, setAsAnnouncement] = useState(false);
 
-  const [panelOpen, setPanelOpen] = useState(true);
+  const [panelOpen, setPanelOpen] = useState(false); // پیش‌فرض بسته در موبایل برای دیدن بهتر چت
+  const [activeQuickTab, setActiveQuickTab] = useState<string | null>(
+    "meeting",
+  );
   const [storyStart, setStoryStart] = useState<number | null>(null);
   const [viewedStories, setViewedStories] = useState<Set<string>>(new Set());
 
@@ -66,11 +100,10 @@ export default function ChatRoom({ room }: { room: Room }) {
   useEffect(() => {
     const last = messages[messages.length - 1];
     if (prevLenRef.current === 0) {
-      scrollToBottom(false); // ورود اولیه
+      scrollToBottom(false);
     } else if (last?.isMine || nearBottomRef.current) {
       scrollToBottom(true);
     } else {
-      // پیام جدید وقتی کاربر بالا اسکرول کرده
       setUnread((u) => u + (messages.length - prevLenRef.current));
     }
     prevLenRef.current = messages.length;
@@ -112,14 +145,12 @@ export default function ChatRoom({ room }: { room: Room }) {
       isMine: true,
     };
 
-    // TODO: socket.emit("message", msg)
     setMessages((prev) => [...prev, msg]);
     setText("");
     setAsAnnouncement(false);
     inputRef.current?.focus();
   };
 
-  // در موبایل با فوکوس روی ورودی، پنل جمع می‌شود تا کیبورد جا را نگیرد
   const handleInputFocus = () => {
     if (window.matchMedia("(max-width: 640px)").matches) setPanelOpen(false);
   };
@@ -135,12 +166,12 @@ export default function ChatRoom({ room }: { room: Room }) {
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex flex-col bg-slate-50"
+      className="fixed inset-0 z-[60] flex flex-col bg-stone-50"
       dir="rtl"
       style={{ height: "100dvh" }}
     >
-      {/* ───── هدر ───── */}
-      <header className="shrink-0 bg-white border-b border-gray-100 px-3 py-2.5 flex items-center justify-between">
+      {/* ───── ۱. هدر اختصاصی تور گردشگری ───── */}
+      <header className="shrink-0 bg-white border-b border-gray-100 px-3 py-2 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-2 min-w-0">
           <Link
             href="/"
@@ -149,91 +180,83 @@ export default function ChatRoom({ room }: { room: Room }) {
           >
             <ArrowRight className="w-5 h-5" />
           </Link>
+
           <div className="flex items-center gap-3 min-w-0">
-            <div className="relative w-10 h-10 shrink-0">
+            <div className="relative w-11 h-11 shrink-0">
               <Image
-                src={room.coverImage}
+                src={room.coverImage || "/default-tour.jpg"}
                 alt={room.title}
                 fill
-                sizes="40px"
-                className="rounded-full object-cover ring-2 ring-indigo-50"
+                sizes="44px"
+                className="rounded-2xl object-cover ring-2 ring-emerald-100"
               />
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full flex items-center justify-center">
+                <Compass className="w-2 h-2 text-white" />
+              </span>
             </div>
+
             <div className="min-w-0">
-              <h1 className="font-bold text-gray-900 text-sm sm:text-base truncate">
-                {room.title}
-              </h1>
-              <p className="text-xs text-gray-500 truncate">
-                <span className="text-emerald-600 font-medium">
-                  {room.membersCount} نفر آنلاین
+              <div className="flex items-center gap-1.5">
+                <h1 className="font-bold text-gray-900 text-sm sm:text-base truncate">
+                  {room.title}
+                </h1>
+              </div>
+              <p className="text-xs text-gray-500 truncate flex items-center gap-2 mt-0.5">
+                <span className="flex items-center gap-1 text-emerald-600 font-medium">
+                  <MapPin className="w-3 h-3" />
+                  {TOUR_MOCK_DATA.destination}
                 </span>
-                {" · "}لیدر: {room.creatorName}
               </p>
             </div>
           </div>
         </div>
-        <button
-          aria-label="گزینه‌ها"
-          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
-        >
-          <MoreVertical className="w-5 h-5" />
-        </button>
-      </header>
 
-      {/* ───── پنل لیدر: استوری + سنجاق + کارت‌ها ───── */}
-      <section className="shrink-0 bg-white border-b border-gray-100 shadow-sm">
-        {panelOpen && (
+        <div className="flex items-center gap-1">
+          <button
+            aria-label="گزینه‌ها"
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <MoreVertical className="w-5 h-5" />
+          </button>
+        </div>
+      </header>
+      <section className="shrink-0 bg-white border-b border-gray-100 shadow-xs">
+        {true && (
           <StoryBar
             groups={mockStories}
             viewed={viewedStories}
             onOpen={setStoryStart}
             canAdd={canModerate}
-            onAdd={() => {
-              /* TODO: آپلود استوری جدید */
-            }}
+            onAdd={() => {}}
           />
         )}
-
-        <div className="flex items-center gap-2 px-3 py-2 bg-amber-50/70 border-y border-amber-100">
-          <Pin className="w-4 h-4 text-amber-600 shrink-0" />
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-bold text-amber-700">
-              پیام سنجاق‌شده · {mockPinned.author}
-            </p>
-            <p className="text-xs text-gray-700 truncate">{mockPinned.text}</p>
-          </div>
-          <button
-            onClick={() => setPanelOpen((o) => !o)}
-            aria-label={panelOpen ? "بستن پنل لیدر" : "باز کردن پنل لیدر"}
-            className="p-1.5 text-amber-700 hover:bg-amber-100 rounded-full transition-colors cursor-pointer"
-          >
-            {panelOpen ? (
-              <ChevronUp className="w-4 h-4" />
-            ) : (
-              <ChevronDown className="w-4 h-4" />
-            )}
-          </button>
-        </div>
-
-        {panelOpen && (
-          <div className="pt-3 bg-slate-50/60">
-            <LeaderCards event={mockEvent} poll={mockPoll} />
-          </div>
-        )}
+      </section>
+      <section className="shrink-0 bg-white border-b border-gray-100 shadow-xs">
+        <TourReserve
+          tourData={{
+            id: room.id,
+            title: room.title,
+            destination: "کویر مرنجاب و دریاچه نمک",
+            bannerImage: room.coverImage || "/default-tour.jpg",
+            date: "۱۵ الی ۱۷ آبان",
+            maxCapacity: 20, // سقف همسفران
+            currentMembers: room.membersCount || 14,
+            leaderName: "آرمین رضایی",
+            price: "۲,۵۰۰,۰۰۰ تومان",
+          }}
+        />
       </section>
 
-      {/* ───── پیام‌ها (تنها بخش اسکرول‌شونده) ───── */}
-      <div className="relative flex-1 min-h-0">
+      <div className="relative flex-1 min-h-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
         <div
           ref={scrollRef}
           onScroll={handleScroll}
           className="h-full overflow-y-auto overscroll-contain px-3 sm:px-4 py-4"
         >
-          <div className="max-w-4xl mx-auto flex flex-col">
+          <div className="max-w-3xl mx-auto flex flex-col">
             <div className="flex justify-center mb-4">
-              <span className="text-[10px] sm:text-xs font-medium bg-gray-200/70 text-gray-500 px-3 py-1 rounded-full">
-                امروز
+              <span className="text-[11px] font-medium bg-white/90 border border-gray-200 text-gray-600 px-3.5 py-1 rounded-full shadow-xs">
+                برنامه سفر: {TOUR_MOCK_DATA.destination}
               </span>
             </div>
 
@@ -262,11 +285,11 @@ export default function ChatRoom({ room }: { room: Room }) {
           <button
             onClick={() => scrollToBottom(true)}
             aria-label="رفتن به آخرین پیام"
-            className="absolute bottom-3 left-3 p-2.5 bg-white border border-gray-200 text-gray-600 hover:text-indigo-600 rounded-full shadow-md active:scale-95 transition cursor-pointer"
+            className="absolute bottom-3 left-3 p-2.5 bg-white border border-gray-200 text-gray-600 hover:text-emerald-600 rounded-full shadow-md active:scale-95 transition"
           >
             <ArrowDown className="w-4 h-4" />
             {unread > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center">
+              <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-emerald-600 text-white text-[10px] font-bold flex items-center justify-center">
                 {unread.toLocaleString("fa-IR")}
               </span>
             )}
@@ -274,49 +297,50 @@ export default function ChatRoom({ room }: { room: Room }) {
         )}
       </div>
 
-      {/* ───── ورودی (چسبیده به کف + safe-area) ───── */}
+      {/* ───── ۵. اینپوت چت ویژه همسفران و لیدر ───── */}
       <footer
-        className="shrink-0 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-3 py-2 sm:px-5"
-        style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+        className="shrink-0 bg-white/95 backdrop-blur-md border-t border-stone-200 px-3 py-2.5 sm:px-5"
+        style={{ paddingBottom: "max(0.6rem, env(safe-area-inset-bottom))" }}
       >
         {asAnnouncement && (
-          <p className="max-w-4xl mx-auto text-[11px] text-amber-700 font-medium mb-1.5 px-2 flex items-center gap-1">
-            <Megaphone className="w-3.5 h-3.5" />
-            این پیام به‌صورت «اعلان لیدر» برای همه ارسال می‌شود
+          <p className="max-w-3xl mx-auto text-[11px] text-amber-800 font-semibold mb-1.5 px-2 flex items-center gap-1.5 bg-amber-50 py-1 rounded-lg border border-amber-200">
+            <Megaphone className="w-3.5 h-3.5 text-amber-600" />
+            این پیام به عنوان «اعلان رسمی راهنمای تور» برای تمام همسفران سنجاق
+            می‌شود.
           </p>
         )}
+
         <div
-          className={`max-w-4xl mx-auto flex items-end gap-2 border rounded-3xl p-1.5 shadow-sm transition-all duration-200 focus-within:bg-white focus-within:ring-4 ${
+          className={`max-w-3xl mx-auto flex items-end gap-2 border rounded-2xl p-1.5 shadow-xs transition-all duration-200 ${
             asAnnouncement
-              ? "bg-amber-50 border-amber-300 focus-within:border-amber-500 focus-within:ring-amber-100/70"
-              : "bg-slate-50 border-slate-200 focus-within:border-indigo-500 focus-within:ring-indigo-100/60"
+              ? "bg-amber-50/60 border-amber-300 focus-within:border-amber-500 focus-within:ring-2 focus-within:ring-amber-200"
+              : "bg-stone-50 border-stone-200 focus-within:bg-white focus-within:border-emerald-600 focus-within:ring-2 focus-within:ring-emerald-100"
           }`}
         >
-          <div className="flex items-center gap-0.5 pb-0.5 text-slate-400">
+          <div className="flex items-center gap-0.5 pb-0.5 text-stone-400">
             <button
               type="button"
-              aria-label="ایموجی"
-              className="p-2 rounded-full hover:text-indigo-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              aria-label="ارسال تصویر یا فایل"
+              className="p-2 rounded-xl hover:text-emerald-600 hover:bg-stone-100 transition-colors"
             >
-              <Smile className="w-5 h-5" />
+              <Paperclip className="w-5 h-5" />
             </button>
             <button
               type="button"
-              aria-label="پیوست فایل"
-              className="p-2 rounded-full hover:text-indigo-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              aria-label="ایموجی"
+              className="p-2 rounded-xl hover:text-emerald-600 hover:bg-stone-100 transition-colors"
             >
-              <Paperclip className="w-5 h-5" />
+              <Smile className="w-5 h-5" />
             </button>
             {canModerate && (
               <button
                 type="button"
                 onClick={() => setAsAnnouncement((v) => !v)}
-                aria-label="ارسال به‌عنوان اعلان"
-                aria-pressed={asAnnouncement}
-                className={`p-2 rounded-full transition-colors cursor-pointer ${
+                title="ارسال اعلان به عنوان راهنمای تور"
+                className={`p-2 rounded-xl transition-all ${
                   asAnnouncement
-                    ? "text-amber-600 bg-amber-100"
-                    : "hover:text-amber-600 hover:bg-slate-100"
+                    ? "text-amber-700 bg-amber-200 shadow-xs"
+                    : "hover:text-amber-600 hover:bg-stone-100"
                 }`}
               >
                 <Megaphone className="w-5 h-5" />
@@ -330,7 +354,9 @@ export default function ChatRoom({ room }: { room: Room }) {
             dir="auto"
             value={text}
             placeholder={
-              asAnnouncement ? "اعلان برای اعضا..." : "پیامی بنویسید..."
+              asAnnouncement
+                ? "اعلان فوری برای همسفران (تغییر ساعت، توقف و...)..."
+                : "پیامی برای همسفران بنویسید..."
             }
             onFocus={handleInputFocus}
             onChange={(e) => setText(e.target.value)}
@@ -344,7 +370,7 @@ export default function ChatRoom({ room }: { room: Room }) {
                 sendMessage();
               }
             }}
-            className="flex-1 min-w-0 bg-transparent border-none focus:outline-none resize-none py-2 text-[14px] sm:text-base text-slate-800 placeholder-slate-400 leading-6 max-h-[140px] overflow-y-auto"
+            className="flex-1 min-w-0 bg-transparent border-none focus:outline-none resize-none py-2 text-[14px] text-stone-800 placeholder-stone-400 leading-6 max-h-[140px] overflow-y-auto"
           />
 
           <button
@@ -352,22 +378,22 @@ export default function ChatRoom({ room }: { room: Room }) {
             onClick={sendMessage}
             disabled={isEmpty}
             aria-label="ارسال پیام"
-            className={`p-2.5 rounded-full shrink-0 flex items-center justify-center transition-all duration-200 ${
+            className={`p-2.5 rounded-xl shrink-0 flex items-center justify-center transition-all ${
               !isEmpty
                 ? `${
                     asAnnouncement
-                      ? "bg-amber-500 hover:bg-amber-600 shadow-amber-500/30"
-                      : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/25"
-                  } text-white shadow-md active:scale-90 cursor-pointer`
-                : "bg-slate-200/80 text-slate-400 cursor-not-allowed opacity-60"
+                      ? "bg-amber-600 hover:bg-amber-700 shadow-amber-600/30"
+                      : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/25"
+                  } text-white shadow-md active:scale-95`
+                : "bg-stone-200 text-stone-400 cursor-not-allowed"
             }`}
           >
-            <Send className="w-4 h-4 sm:w-5 sm:h-5 -scale-x-100" />
+            <Send className="w-4 h-4 -scale-x-100" />
           </button>
         </div>
       </footer>
 
-      {/* ───── نمایشگر استوری ───── */}
+      {/* ───── ۶. مدال استوری ───── */}
       {storyStart !== null && (
         <StoryViewer
           groups={mockStories}
@@ -380,7 +406,7 @@ export default function ChatRoom({ room }: { room: Room }) {
   );
 }
 
-/* ───────────── انواع پیام ───────────── */
+/* ───────────── کامپوننت‌های پیام با تم تور ───────────── */
 
 function MessageItem({
   msg,
@@ -394,7 +420,8 @@ function MessageItem({
   if (msg.kind === "system") {
     return (
       <div className="flex justify-center my-3">
-        <span className="text-[11px] text-gray-500 bg-gray-200/60 px-3 py-1 rounded-full">
+        <span className="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full flex items-center gap-1.5">
+          <Compass className="w-3 h-3 text-emerald-600" />
           {msg.text}
         </span>
       </div>
@@ -404,20 +431,24 @@ function MessageItem({
   if (msg.kind === "announcement") {
     return (
       <div className="flex justify-center my-3">
-        <div className="w-full max-w-[92%] sm:max-w-[80%] rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-3.5 shadow-sm">
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="w-7 h-7 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0">
+        <div className="w-full max-w-[95%] sm:max-w-[85%] rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50 p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-2 pb-2 border-b border-amber-200/60">
+            <span className="w-7 h-7 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0">
               <Megaphone className="w-4 h-4" />
             </span>
             <div className="leading-tight">
-              <p className="text-xs font-bold text-amber-800">اعلان لیدر</p>
-              <p className="text-[11px] text-amber-700/80">{msg.senderName}</p>
+              <p className="text-xs font-black text-amber-900">
+                اعلان رسمی سفر
+              </p>
+              <p className="text-[11px] text-amber-700">
+                {msg.senderName} (سرپرست تور)
+              </p>
             </div>
-            <span className="mr-auto text-[10px] text-amber-700/70">
+            <span className="mr-auto text-[10px] text-amber-700/80 font-medium">
               {msg.time}
             </span>
           </div>
-          <p className="text-sm text-gray-800 leading-7 whitespace-pre-wrap break-words">
+          <p className="text-sm text-stone-800 leading-relaxed whitespace-pre-wrap break-words font-medium">
             {msg.text}
           </p>
         </div>
@@ -435,18 +466,22 @@ function MessageItem({
 }
 
 function RoleBadge({ role }: { role?: Role }) {
-  if (!role || role === "member") return null;
-  return (
-    <span
-      className={`text-[9px] font-bold px-1.5 py-px rounded-md ${
-        role === "leader"
-          ? "bg-amber-100 text-amber-700"
-          : "bg-indigo-100 text-indigo-700"
-      }`}
-    >
-      {role === "leader" ? "لیدر" : "کو-لیدر"}
-    </span>
-  );
+  if (role === "leader") {
+    return (
+      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 flex items-center gap-1">
+        <ShieldCheck className="w-2.5 h-2.5 text-emerald-600" />
+        سرپرست تور
+      </span>
+    );
+  }
+  if (role === "co-leader") {
+    return (
+      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-700">
+        کمک‌لیدر
+      </span>
+    );
+  }
+  return null;
 }
 
 function Avatar({ src, name }: { src?: string; name: string }) {
@@ -458,10 +493,10 @@ function Avatar({ src, name }: { src?: string; name: string }) {
           alt={name}
           fill
           sizes="32px"
-          className="rounded-full object-cover"
+          className="rounded-xl object-cover ring-1 ring-stone-200"
         />
       ) : (
-        <div className="w-full h-full rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold flex items-center justify-center">
+        <div className="w-full h-full rounded-xl bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center">
           {name.charAt(0)}
         </div>
       )}
@@ -501,26 +536,26 @@ function TextBubble({
           ))}
 
         <div
-          className={`flex flex-col gap-0.5 px-3 py-2 shadow-sm ${
+          className={`flex flex-col gap-1 px-3.5 py-2 shadow-xs ${
             isMine
-              ? "bg-indigo-600 text-white rounded-2xl rounded-bl-sm"
-              : "bg-white border border-gray-100 text-gray-800 rounded-2xl rounded-br-sm"
+              ? "bg-emerald-700 text-white rounded-2xl rounded-bl-xs"
+              : "bg-white border border-stone-200/80 text-stone-800 rounded-2xl rounded-br-xs"
           }`}
         >
           {showName && (
-            <span className="flex items-center gap-1.5">
-              <span className="text-[11px] font-bold text-indigo-600">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <span className="text-[11px] font-bold text-stone-700">
                 {msg.senderName}
               </span>
               <RoleBadge role={msg.role} />
-            </span>
+            </div>
           )}
           <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
             {msg.text}
           </p>
           <span
-            className={`text-[10px] self-end ${
-              isMine ? "text-indigo-200" : "text-gray-400"
+            className={`text-[10px] self-end mt-0.5 ${
+              isMine ? "text-emerald-200" : "text-stone-400"
             }`}
           >
             {msg.time}

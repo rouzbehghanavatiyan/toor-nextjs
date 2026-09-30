@@ -151,11 +151,9 @@ function SingleLeaderCard({ leader }: { leader: TourLeader }) {
         </span>
       </div>
 
-      {/* اطلاعات لیدر */}
       <div className="p-5 flex-1 flex flex-col justify-between">
         <div>
           <div className="flex items-start justify-between">
-            {/* آواتار و نام (لینک به پروفایل اختصاصی) */}
             <Link
               href={`/leaders/${leader.id}`}
               className="flex items-center gap-3 group"
@@ -174,10 +172,7 @@ function SingleLeaderCard({ leader }: { leader: TourLeader }) {
                     {leader.name}
                   </h3>
                   {leader.isVerified && (
-                    <ShieldCheck
-                      className="w-4 h-4 text-emerald-600"
-                      title="لیدر رسمی میراث فرهنگی"
-                    />
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
                   )}
                 </div>
                 <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
@@ -190,8 +185,6 @@ function SingleLeaderCard({ leader }: { leader: TourLeader }) {
               </div>
             </Link>
           </div>
-
-          {/* آمار همسفران و تورها */}
           <div className="grid grid-cols-2 gap-2 mt-4 py-2.5 px-3 bg-gray-50 rounded-xl text-xs text-gray-600">
             <div className="flex items-center gap-1.5">
               <CalendarCheck className="w-4 h-4 text-gray-500" />
