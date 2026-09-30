@@ -30,7 +30,6 @@ import {
 } from "@/lib/chat";
 import type { Room } from "@/lib/rooms";
 
-// TODO: از سشن/احراز هویت واقعی بیاید
 const currentUser: { name: string; role: Role } = {
   name: "شما",
   role: "leader",
