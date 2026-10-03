@@ -20,7 +20,7 @@ export default function StoryBar({
   onAdd,
 }: Props) {
   return (
-    <div className="flex items-start gap-3.5 overflow-x-auto no-scrollbar px-3 py-3">
+    <div className="flex items-start gap-3.5 overflow-x-auto px-3 py-3 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       {canAdd && (
         <button
           type="button"

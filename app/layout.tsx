@@ -2,10 +2,9 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Link from "next/link";
 import Image from "next/image";
-import { Users, Settings, MapPinned, Tv, Radio, Compass } from "lucide-react";
+import { Users, Settings, MapPinned, Tv, Radio } from "lucide-react";
 import "./globals.css";
 
-// ۱. تعریف فونت محلی یکان
 const yekan = localFont({
   src: [
     {
@@ -38,27 +37,9 @@ export default function RootLayout({
       <body
         className={`${yekan.className} bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col selection:bg-amber-400 selection:text-slate-950`}
       >
-        {/* نوار ناوبری دسکتاپ (هدر تیره سرمه‌ای با المان‌های زرد) */}
-        <nav className="hidden md:block bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-50 shadow-md">
+        {/* نوار بالایی دسکتاپ */}
+        <nav className="hidden md:block bg-gradient-to-l from-slate-950 via-slate-900 to-slate-800 border-b border-amber-400/20 text-white sticky top-0 z-50 shadow-lg">
           <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-            {/* لوگو و عنوان برند */}
-            <div className="flex items-center gap-3">
-              <span className="p-2 rounded-xl bg-amber-400/10 border border-amber-400/20 text-amber-400">
-                <Compass className="w-5 h-5 animate-pulse" />
-              </span>
-              <span className="font-extrabold text-lg text-amber-400 tracking-tight">
-                <Image
-                  src="/assets/img/logo.png"
-                  alt="لوگوی سامانه گردشگری"
-                  width={65}
-                  height={100}
-                  priority
-                  className="object-cover"
-                />
-              </span>
-            </div>
-
-            {/* لینک‌های ناوبری دسکتاپ */}
             <div className="flex items-center gap-2">
               <Link
                 href="/"
@@ -96,63 +77,74 @@ export default function RootLayout({
                 <span>تنظیمات</span>
               </Link>
             </div>
-
-            {/* وضعیت سرور / سوکت */}
-            <div className="flex items-center gap-2 text-xs bg-slate-800/90 text-slate-300 px-3 py-1.5 rounded-full border border-slate-700/60">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span>آنلاین</span>
-            </div>
+            <Link href="/" className="flex items-center">
+              <Image
+                src="/assets/img/logo.png"
+                alt="لوگوی سامانه گردشگری"
+                width={120}
+                height={40}
+                priority
+                className="h-9 w-auto object-contain"
+              />
+            </Link>
           </div>
         </nav>
-
-        <header className="md:hidden bg-slate-900 border-b border-slate-800 px-4 h-14 sticky top-0 z-40 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Compass className="w-5 h-5 text-amber-400" />
-            <span className="font-bold text-white text-base">توروین</span>
-          </div>
-          <span className="w-2 h-2 rounded-full bg-emerald-400" />
+        <header className="md:hidden sticky top-0 z-40 h-10 bg-white backdrop-blur-md border-b border-gray-100 px-4 flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-2"></div>
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/assets/img/logo.png"
+              alt="لوگوی سامانه گردشگری"
+              width={60}
+              height={42}
+              priority
+              className="w-auto object-contain"
+            />
+          </Link>
         </header>
 
-        <main className="container mx-auto  sm:p-6 flex-1 pb-24 md:pb-8">
+        <main className="container mx-auto p-4 sm:p-6 flex-1 pb-24 md:pb-8">
           {children}
         </main>
 
-        {/* نوار ناوبری پایین صفحه در موبایل (Bottom Navigation Bar) */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 shadow-2xl pb-[env(safe-area-inset-bottom)]">
-          <div className="flex items-center justify-around py-1.5 px-1">
+        <nav
+          aria-label="منوی موبایل"
+          className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800/80 shadow-[0_-4px_20px_rgba(0,0,0,0.3)] pb-[env(safe-area-inset-bottom)]"
+        >
+          <div className="grid grid-cols-5 h-12 items-center px-2">
             <Link
               href="/"
-              className="flex flex-col items-center justify-center flex-1 py-1 text-slate-400 hover:text-amber-400 transition-colors group"
+              className="flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-amber-400 active:scale-95 transition-all"
             >
-              <Users className="w-5 h-5 mb-0.5 group-hover:scale-110 transition-transform" />
+              <Users className="w-5 h-5" />
             </Link>
 
             <Link
               href="/show"
-              className="flex flex-col items-center justify-center flex-1 py-1 text-slate-400 hover:text-amber-400 transition-colors group"
+              className="flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-amber-400 active:scale-95 transition-all"
             >
-              <Tv className="w-5 h-5 mb-0.5 group-hover:scale-110 transition-transform" />
+              <Tv className="w-5 h-5" />
             </Link>
 
             <Link
               href="/organs"
-              className="flex flex-col items-center justify-center flex-1 py-1 text-slate-400 hover:text-amber-400 transition-colors group"
+              className="flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-amber-400 active:scale-95 transition-all"
             >
-              <MapPinned className="w-5 h-5 mb-0.5 group-hover:scale-110 transition-transform" />
+              <MapPinned className="w-5 h-5" />
             </Link>
 
             <Link
               href="/leaders"
-              className="flex flex-col items-center justify-center flex-1 py-1 text-slate-400 hover:text-amber-400 transition-colors group"
+              className="flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-amber-400 active:scale-95 transition-all"
             >
-              <Radio className="w-5 h-5 mb-0.5 group-hover:scale-110 transition-transform" />
+              <Radio className="w-5 h-5" />
             </Link>
 
             <Link
               href="/settings"
-              className="flex flex-col items-center justify-center flex-1 py-1 text-slate-400 hover:text-amber-400 transition-colors group"
+              className="flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-amber-400 active:scale-95 transition-all"
             >
-              <Settings className="w-5 h-5 mb-0.5 group-hover:scale-110 transition-transform" />
+              <Settings className="w-5 h-5" />
             </Link>
           </div>
         </nav>

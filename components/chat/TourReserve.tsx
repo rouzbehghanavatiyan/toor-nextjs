@@ -102,20 +102,19 @@ export default function TourReserve({
     ? Math.min(
         100,
         Math.round(
-          (selectedTour.currentMembers / selectedTour.maxCapacity) * 100
-        )
+          (selectedTour.currentMembers / selectedTour.maxCapacity) * 100,
+        ),
       )
     : 0;
 
   return (
     <>
-      {/* ─── نوار افقی کارت‌های رزرو کنار هم ─── */}
       <div className="w-full px-3.5 py-2.5">
         <div className="flex items-center gap-3 overflow-x-auto pb-1 scrollbar-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {tours.map((tour) => {
             const tourRemaining = Math.max(
               0,
-              tour.maxCapacity - tour.currentMembers
+              tour.maxCapacity - tour.currentMembers,
             );
             const isFull = tourRemaining === 0;
 
@@ -240,7 +239,8 @@ export default function TourReserve({
                     </span>
                   </div>
                   <span className="text-xs font-extrabold text-slate-800">
-                    {selectedTour.currentMembers} از {selectedTour.maxCapacity} نفر
+                    {selectedTour.currentMembers} از {selectedTour.maxCapacity}{" "}
+                    نفر
                   </span>
                 </div>
 
@@ -336,7 +336,9 @@ export default function TourReserve({
                     <>
                       <SendHorizontal className="w-4 h-4" />
                       <span>
-                        {remaining === 0 ? "تکمیل ظرفیت" : "درخواست دعوت به تور"}
+                        {remaining === 0
+                          ? "تکمیل ظرفیت"
+                          : "درخواست دعوت به تور"}
                       </span>
                     </>
                   )}
