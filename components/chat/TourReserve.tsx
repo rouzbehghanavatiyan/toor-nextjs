@@ -29,6 +29,10 @@ export interface TourItem {
 
 export interface TourReserveProps {
   tours?: TourItem[];
+  startIndex: any;
+  onClose: any;
+  onViewed: any;
+  groups: any;
 }
 
 const DEFAULT_TOURS: TourItem[] = [
@@ -75,6 +79,10 @@ const DEFAULT_TOURS: TourItem[] = [
 ];
 
 export default function TourReserve({
+  startIndex,
+  onClose,
+  onViewed,
+  groups,
   tours = DEFAULT_TOURS,
 }: TourReserveProps) {
   const [selectedTour, setSelectedTour] = useState<TourItem | null>(null);

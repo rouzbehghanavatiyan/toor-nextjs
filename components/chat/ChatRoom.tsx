@@ -11,36 +11,20 @@ import {
   Smile,
   MoreVertical,
   Megaphone,
-  Pin,
-  ChevronDown,
-  ChevronUp,
   MapPin,
   Compass,
-  PhoneCall,
-  Calendar,
-  CloudSun,
-  Backpack,
-  AlertTriangle,
-  Clock,
   ShieldCheck,
 } from "lucide-react";
-
 import StoryBar from "./StoryBar";
 import StoryViewer from "./TourReserve";
-import LeaderCards from "./LeaderCards";
 import {
   initialMessages,
-  mockEvent,
-  mockPinned,
-  mockPoll,
   mockStories,
   type Message,
   type Role,
 } from "@/lib/chat";
 import type { Room } from "@/lib/rooms";
-import TourReserve from "./TourReserve";
 
-// مدل گسترش‌یافته اطلاعات تور
 interface TourDetails {
   destination: string;
   startDate: string;
@@ -231,21 +215,6 @@ export default function TourChatRoom({ room }: { room: Room }) {
           />
         )}
       </section>
-      <section className="shrink-0 bg-white border-b border-gray-100 shadow-xs">
-        <TourReserve
-          tourData={{
-            id: room.id,
-            title: room.title,
-            destination: "کویر مرنجاب و دریاچه نمک",
-            bannerImage: room.coverImage || "/default-tour.jpg",
-            date: "۱۵ الی ۱۷ آبان",
-            maxCapacity: 20, // سقف همسفران
-            currentMembers: room.membersCount || 14,
-            leaderName: "آرمین رضایی",
-            price: "۲,۵۰۰,۰۰۰ تومان",
-          }}
-        />
-      </section>
 
       <div className="relative flex-1 min-h-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
         <div
@@ -393,7 +362,6 @@ export default function TourChatRoom({ room }: { room: Room }) {
         </div>
       </footer>
 
-      {/* ───── ۶. مدال استوری ───── */}
       {storyStart !== null && (
         <StoryViewer
           groups={mockStories}
